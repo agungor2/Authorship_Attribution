@@ -1,0 +1,394 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>BOW_50author</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-03-15"><meta name="DC.source" content="BOW_50author.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">%Implement Bag of words</span>
+load(<span class="string">'Vocabulary_wstopwords.mat'</span>)
+load(<span class="string">'ml_challenge_data_wstopwords.mat'</span>)
+
+train_txt = txt_pieces(train_ind,:);
+test_txt = txt_pieces(test_ind,:);
+train_author = aid(train_ind);
+test_author = aid(test_ind);
+
+[n, d] = size(train_txt);
+[n2, d2] = size(test_txt);
+
+word_id = 8000:10000;
+numvoc = length(word_id);
+
+BOW_train = zeros(n, numvoc);
+BOW_test = zeros(n2, numvoc);
+
+
+<span class="comment">%BOW</span>
+<span class="keyword">for</span> i=1:n
+    BOW_train(i,:) = histc(train_txt(i, :), word_id);
+<span class="keyword">end</span>
+
+<span class="keyword">for</span> i=1:n2
+    BOW_test(i,:) = histc(test_txt(i, :), word_id);
+<span class="keyword">end</span>
+
+
+<span class="comment">%BOW authorwise</span>
+author_list = containers.Map;
+unique_author_list = unique(train_author);
+<span class="keyword">for</span> i = 1:length(unique(train_author))
+    tmp_txt = train_txt(train_author==unique_author_list(i), :);
+    a = unique(tmp_txt);
+    out = [a,histc(tmp_txt(:),a)];
+    <span class="comment">%Take the most occurent 20 words for each author</span>
+    <span class="comment">%write it to a cell</span>
+    [~,idx] = sort(out(:,2),<span class="string">'descend'</span>); <span class="comment">% sort just the first column</span>
+    sortedmat = out(idx,:);   <span class="comment">% sort the whole matrix using the sort indices</span>
+    author_list(int2str(i)) = sortedmat(1:20,:);
+    authorwise_top_elements = <span class="string">""</span>;
+    <span class="keyword">for</span> j=1:20
+        authorwise_top_elements = authorwise_top_elements + <span class="string">" "</span> +shortened_vocab{sortedmat(j,1)};
+    <span class="keyword">end</span>
+    authorwise_top_elements
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">
+authorwise_top_elements = 
+
+    " the to of he a and i that in you was it she his her had as not with for"
+
+
+authorwise_top_elements = 
+
+    " the and of to a i in he was you it his that her with for as not said is"
+
+
+authorwise_top_elements = 
+
+    " the to of i and a in that it is he she be her you was as not with for"
+
+
+authorwise_top_elements = 
+
+    " the and of a to i in that he it was his you with had as is for my but"
+
+
+authorwise_top_elements = 
+
+    " the and of to a in her i that she it was you &acirc; for not as he with is"
+
+
+authorwise_top_elements = 
+
+    " the and to of i a in that it he was his you with as her &acirc; had my for"
+
+
+authorwise_top_elements = 
+
+    " the and a to of i he in it was you his that is &acirc; her with for not but"
+
+
+authorwise_top_elements = 
+
+    " the of to and a i in he her that it she &acirc; was his had you s with as"
+
+
+authorwise_top_elements = 
+
+    " the of and to in a was that he s his by for it had as were with i on"
+
+
+authorwise_top_elements = 
+
+    " the to and i of a he you was in that his her it she with as not is but"
+
+
+authorwise_top_elements = 
+
+    " the and to a of her he she in i was it his had &acirc; that with as not you"
+
+
+authorwise_top_elements = 
+
+    " the of to and a in i that was he it her his as &acirc; had with s you she"
+
+
+authorwise_top_elements = 
+
+    " the and to of a i that he in was she her it you had but not his for is"
+
+
+authorwise_top_elements = 
+
+    " the and of a to i in that is it he was as not with but his my you for"
+
+
+authorwise_top_elements = 
+
+    " the and to of a in her i that he she was it had his you &acirc; s as for"
+
+
+authorwise_top_elements = 
+
+    " the of and to a that in i it was he for with is his you as not had her"
+
+
+authorwise_top_elements = 
+
+    " the of and to a in &acirc; i that is it for by be as or not on was which"
+
+
+authorwise_top_elements = 
+
+    " the and of a to in i is with was it on which for as that are by at but"
+
+
+authorwise_top_elements = 
+
+    " the and of to a he in was i it that his with for you had on but s as"
+
+
+authorwise_top_elements = 
+
+    " the and to of a in it he was that said they is his i you as for at with"
+
+
+authorwise_top_elements = 
+
+    " the and of to a in he i was that his it with you for they as is but s"
+
+
+authorwise_top_elements = 
+
+    " the of and to in a his he is it that was as with on &acirc; which for i by"
+
+
+authorwise_top_elements = 
+
+    " the of to and a i in it that was he his is had as for you with not &acirc;"
+
+
+authorwise_top_elements = 
+
+    " the to and of a i her in was it she not be that you as he for had with"
+
+
+authorwise_top_elements = 
+
+    " the of to i a and that in it you he was for is as said with s my his"
+
+
+authorwise_top_elements = 
+
+    " the of and in to a is as with i on are it that from by or for &acirc; be"
+
+
+authorwise_top_elements = 
+
+    " the of and to a in i his that it was with he you as &acirc; this by is for"
+
+
+authorwise_top_elements = 
+
+    " the i to and of a you that in it was she he her my had not &acirc; for is"
+
+
+authorwise_top_elements = 
+
+    " the of and to a in i &acirc; her it he she was that you with his s had as"
+
+
+authorwise_top_elements = 
+
+    " the and of &acirc; to a i in he you it her that his with was she as is for"
+
+
+authorwise_top_elements = 
+
+    " the and of to a it was that i in &acirc; her she he you with for had but his"
+
+
+authorwise_top_elements = 
+
+    " the of and a to in that it i was with his as he had is for by at &acirc;"
+
+
+authorwise_top_elements = 
+
+    " the of and to a in he was i you it his had that as for on not is with"
+
+
+authorwise_top_elements = 
+
+    " the of and to in a is that it as his not he with for be but which or by"
+
+
+authorwise_top_elements = 
+
+    " the and of a to i in was he it that with his you my for s had but is"
+
+
+authorwise_top_elements = 
+
+    " the and of a to i he in that was his &acirc; it s you for with as on an"
+
+
+authorwise_top_elements = 
+
+    " the and to a of i was in she he that it had her s as with for his t"
+
+
+authorwise_top_elements = 
+
+    " the of and to a in her that i it with is for as his be was she which not"
+
+
+authorwise_top_elements = 
+
+    " the and to a of i he in was you that it &acirc; s she t with his but for"
+
+
+authorwise_top_elements = 
+
+    " the and of to a i was in he that it as had &acirc; his at not for you with"
+
+
+authorwise_top_elements = 
+
+    " the to and i a of you he it in that &acirc; was with s his t as for not"
+
+
+authorwise_top_elements = 
+
+    " the and of to a in i he her that was she it his had as you &acirc; not s"
+
+
+authorwise_top_elements = 
+
+    " the and to he i a of was in she an her it had that his you him as on"
+
+
+authorwise_top_elements = 
+
+    " the of and to a in &acirc; his i that he was with it by which as is for on"
+
+
+authorwise_top_elements = 
+
+    " the of and to a in i that it he his &acirc; you is as was for be s with"
+
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%%
+%Implement Bag of words
+load('Vocabulary_wstopwords.mat')
+load('ml_challenge_data_wstopwords.mat')
+
+train_txt = txt_pieces(train_ind,:);
+test_txt = txt_pieces(test_ind,:);
+train_author = aid(train_ind);
+test_author = aid(test_ind);
+
+[n, d] = size(train_txt);
+[n2, d2] = size(test_txt);
+
+word_id = 8000:10000;
+numvoc = length(word_id);
+
+BOW_train = zeros(n, numvoc);
+BOW_test = zeros(n2, numvoc);
+
+
+%BOW 
+for i=1:n
+    BOW_train(i,:) = histc(train_txt(i, :), word_id);
+end
+
+for i=1:n2
+    BOW_test(i,:) = histc(test_txt(i, :), word_id);
+end
+
+
+%BOW authorwise
+author_list = containers.Map;
+unique_author_list = unique(train_author);
+for i = 1:length(unique(train_author))
+    tmp_txt = train_txt(train_author==unique_author_list(i), :);
+    a = unique(tmp_txt);
+    out = [a,histc(tmp_txt(:),a)];
+    %Take the most occurent 20 words for each author
+    %write it to a cell
+    [~,idx] = sort(out(:,2),'descend'); % sort just the first column
+    sortedmat = out(idx,:);   % sort the whole matrix using the sort indices
+    author_list(int2str(i)) = sortedmat(1:20,:);
+    authorwise_top_elements = "";
+    for j=1:20
+        authorwise_top_elements = authorwise_top_elements + " " +shortened_vocab{sortedmat(j,1)};
+    end
+    authorwise_top_elements
+end
+
+%%
+##### SOURCE END #####
+--></body></html>
