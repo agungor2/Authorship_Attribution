@@ -72,4 +72,4 @@ P_N_index.py :
 Positivity and negativity index comparison per author in both 3 and 50 authors dataset
 
 synonym_example.py : 
-Synonym and antonym word usage in 3 and 50 authors dataset
+Synonym and antonym word usage examplary cases
