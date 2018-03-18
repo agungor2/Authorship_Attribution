@@ -68,3 +68,5 @@ Character n-gram representation for both 3 authors and 50 authors dataset
 syntactic_features.py : 
 syntactic feature calculation authorwise (such as usage of adjectives, verbs, nouns, etc...)
 
+P_N_index.py : 
+Positivity and negativity index comparison per author in both 3 and 50 authors dataset
