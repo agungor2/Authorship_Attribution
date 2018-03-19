@@ -73,3 +73,6 @@ Positivity and negativity index comparison per author in both 3 and 50 authors d
 
 synonym_example.py : 
 Synonym and antonym word usage examplary cases
+
+word2vec_tsne.py : 
+Train it on author 1 and author 4 and plot it in 2 dimensional vector space considering the word of your choosing
