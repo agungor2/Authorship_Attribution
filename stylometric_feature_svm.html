@@ -1,0 +1,992 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- saved from url=(0155)file:///C:/Users/mgungor/Google%20Drive/IUPUI/IUPUI_Fall2017/Research/Dataset%20with%20Stop%20Words/liblinear-2.11/matlab/html/stylometric_feature_svm.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>stylometric_feature_svm</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-03-23"><meta name="DC.source" content="stylometric_feature_svm.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">%Import the number of unique words,</span>
+<span class="comment">%number of characters, number of stop words,</span>
+test_3_feature = load(<span class="string">'test_3.mat'</span>);
+test_3_feature = test_3_feature.test_z;
+train_3_feature = load(<span class="string">'train_3.mat'</span>);
+train_3_feature = train_3_feature.train_z;
+test_3_feature = double(test_3_feature);
+train_3_feature = double(train_3_feature);
+<span class="comment">%Import adj, noun, verb number</span>
+train_anv = load(<span class="string">'train_s.mat'</span>);
+train_anv = train_anv.train_s;
+test_anv = load(<span class="string">'test_s.mat'</span>);
+test_anv = test_anv.test_s;
+
+<span class="comment">%Import polarity and subjectivity</span>
+train_ps = load(<span class="string">'train_sentiment.mat'</span>);
+train_ps = train_ps.train_z;
+test_ps = load(<span class="string">'test_sentiment.mat'</span>);
+test_ps = test_ps.test_z;
+
+<span class="comment">%Do normalization for the number of unique words,</span>
+<span class="comment">%number of characters, number of stop words,</span>
+test_3_feature=test_3_feature./(sum(test_3_feature,2)*ones(1,size(test_3_feature,2)));
+train_3_feature=train_3_feature./(sum(train_3_feature,2)*ones(1,size(train_3_feature,2)));
+bow=[train_3_feature;test_3_feature];
+n = length(train_3_feature);
+<span class="keyword">for</span> i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+<span class="keyword">end</span>
+train_3_feature = bow(1:n,:);
+test_3_feature = bow((n+1):end, :);
+<span class="comment">%Do normalization for adj, noun, verb number</span>
+test_anv=test_anv./(sum(test_anv,2)*ones(1,size(test_anv,2)));
+train_anv=train_anv./(sum(train_anv,2)*ones(1,size(train_anv,2)));
+bow=[train_anv;test_anv];
+n = length(train_anv);
+<span class="keyword">for</span> i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+<span class="keyword">end</span>
+train_anv = bow(1:n,:);
+test_anv = bow((n+1):end, :);
+<span class="comment">%Do normalization for polarity and subjectivity</span>
+test_ps=test_ps./(sum(test_ps,2)*ones(1,size(test_ps,2)));
+train_ps=train_ps./(sum(train_ps,2)*ones(1,size(train_ps,2)));
+bow=[train_ps;test_ps];
+n = length(train_ps);
+<span class="keyword">for</span> i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+<span class="keyword">end</span>
+train_ps = bow(1:n,:);
+test_ps = bow((n+1):end, :);
+<span class="comment">%Now concatanate them all</span>
+train_final = [train_3_feature, train_anv, train_ps];
+test_final = [test_3_feature, test_anv, test_ps];
+
+
+<span class="comment">%Now let's build SVM on this data</span>
+load(<span class="string">'ml_challenge_data_wstopwords.mat'</span>)
+train_txt = txt_pieces(train_ind',:);
+test_txt = txt_pieces(test_ind',:);
+train_author = aid(train_ind');
+test_author = aid(test_ind');
+model = train(train_author, sparse(train_final),[<span class="string">'-s 3'</span>,<span class="string">'-C 5'</span>]);
+[predicted_label] = predict(ones(size(test_final,1),1), sparse(test_final), model);
+
+count=0;
+Y= test_author;
+<span class="keyword">for</span> i=1:size(test_txt,1)
+    <span class="keyword">if</span> predicted_label(i,1)==Y(i)
+        count = count +1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+Accuracy = count/size(test_txt,1)*100
+
+result=confusionmatStats(Y, predicted_label(:,1));
+mean(result.Fscore)
+
+
+<span class="comment">%Now let's add bag of words to them as a variable see the difference</span>
+[n, d] = size(train_txt);
+[n2, d2] = size(test_txt);
+word_id = 7001:10000;
+numvoc = length(word_id);
+
+
+
+BOW_tr = zeros(n, numvoc);
+BOW_tst = zeros(n2, numvoc);
+
+
+<span class="comment">%BOw representation</span>
+<span class="keyword">for</span> i=1:n
+    BOW_tr(i,:) = histc(train_txt(i, :), word_id);
+<span class="keyword">end</span>
+
+<span class="keyword">for</span> i=1:n2
+    BOW_tst(i,:) = histc(test_txt(i, :), word_id);
+<span class="keyword">end</span>
+
+
+BOW_tst=BOW_tst./(sum(BOW_tst,2)*ones(1,size(BOW_tst,2)));
+BOW_tr=BOW_tr./(sum(BOW_tr,2)*ones(1,size(BOW_tr,2)));
+bow=[BOW_tr;BOW_tst];
+<span class="keyword">for</span> i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+<span class="keyword">end</span>
+BOW_tr = bow(1:n,:);
+BOW_tst = bow((n+1):end, :);
+
+<span class="comment">%Combine bag of words and other useful features together</span>
+train_final_bow = [BOW_tr, train_final];
+test_final_bow = [BOW_tst, test_final];
+model = train(train_author, sparse(train_final_bow),[<span class="string">'-s 3'</span>,<span class="string">'-C 5'</span>]);
+[predicted_label] = predict(ones(size(test_final_bow,1),1), sparse(test_final_bow), model);
+
+count=0;
+Y= test_author;
+<span class="keyword">for</span> i=1:size(test_txt,1)
+    <span class="keyword">if</span> predicted_label(i,1)==Y(i)
+        count = count +1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+Accuracy = count/size(test_txt,1)*100
+
+result=confusionmatStats(Y, predicted_label(:,1));
+mean(result.Fscore)
+
+<span class="comment">%Now we can do the same experiment on 7000 bow</span>
+word_id = 3001:10000;
+numvoc = length(word_id);
+
+
+
+BOW_tr = zeros(n, numvoc);
+BOW_tst = zeros(n2, numvoc);
+
+
+<span class="comment">%BOw representation</span>
+<span class="keyword">for</span> i=1:n
+    BOW_tr(i,:) = histc(train_txt(i, :), word_id);
+<span class="keyword">end</span>
+
+<span class="keyword">for</span> i=1:n2
+    BOW_tst(i,:) = histc(test_txt(i, :), word_id);
+<span class="keyword">end</span>
+
+
+BOW_tst=BOW_tst./(sum(BOW_tst,2)*ones(1,size(BOW_tst,2)));
+BOW_tr=BOW_tr./(sum(BOW_tr,2)*ones(1,size(BOW_tr,2)));
+bow=[BOW_tr;BOW_tst];
+<span class="keyword">for</span> i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+<span class="keyword">end</span>
+BOW_tr = bow(1:n,:);
+BOW_tst = bow((n+1):end, :);
+
+<span class="comment">%Combine bag of words and other useful features together</span>
+train_final_bow = [BOW_tr, train_final];
+test_final_bow = [BOW_tst, test_final];
+model = train(train_author, sparse(train_final_bow),[<span class="string">'-s 3'</span>,<span class="string">'-C 5'</span>]);
+[predicted_label] = predict(ones(size(test_final_bow,1),1), sparse(test_final_bow), model);
+
+count=0;
+Y= test_author;
+<span class="keyword">for</span> i=1:size(test_txt,1)
+    <span class="keyword">if</span> predicted_label(i,1)==Y(i)
+        count = count +1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+Accuracy = count/size(test_txt,1)*100
+
+result=confusionmatStats(Y, predicted_label(:,1));
+mean(result.Fscore)
+</pre><pre class="codeoutput">*
+optimization finished, #iter = 5
+Objective value = -1824.316525
+nSV = 12876
+*
+optimization finished, #iter = 5
+Objective value = -764.316525
+nSV = 10801
+
+optimization finished, #iter = 3
+Objective value = -426.316525
+nSV = 5603
+*
+optimization finished, #iter = 5
+Objective value = -2966.316525
+nSV = 21792
+
+optimization finished, #iter = 3
+Objective value = -814.316524
+nSV = 7869
+
+optimization finished, #iter = 5
+Objective value = -13828.316525
+nSV = 39314
+
+optimization finished, #iter = 4
+Objective value = -2216.316525
+nSV = 17038
+*
+optimization finished, #iter = 5
+Objective value = -1510.316525
+nSV = 16482
+*
+optimization finished, #iter = 5
+Objective value = -766.316525
+nSV = 15785
+*
+optimization finished, #iter = 5
+Objective value = -1254.316525
+nSV = 14282
+
+optimization finished, #iter = 3
+Objective value = -970.316525
+nSV = 9742
+
+optimization finished, #iter = 4
+Objective value = -5392.316525
+nSV = 27041
+
+optimization finished, #iter = 4
+Objective value = -2920.316525
+nSV = 20084
+
+optimization finished, #iter = 3
+Objective value = -366.316511
+nSV = 4947
+*
+optimization finished, #iter = 5
+Objective value = -1320.316525
+nSV = 18945
+
+optimization finished, #iter = 4
+Objective value = -2156.316525
+nSV = 18812
+*
+optimization finished, #iter = 6
+Objective value = -3086.316525
+nSV = 20929
+
+optimization finished, #iter = 4
+Objective value = -1174.316525
+nSV = 13703
+*
+optimization finished, #iter = 5
+Objective value = -4614.316525
+nSV = 22869
+*
+optimization finished, #iter = 5
+Objective value = -990.316525
+nSV = 9155
+
+optimization finished, #iter = 3
+Objective value = -910.316524
+nSV = 8464
+*
+optimization finished, #iter = 5
+Objective value = -760.316525
+nSV = 12820
+
+optimization finished, #iter = 4
+Objective value = -2318.316525
+nSV = 21000
+*
+optimization finished, #iter = 6
+Objective value = -8882.316525
+nSV = 28093
+
+optimization finished, #iter = 3
+Objective value = -612.316525
+nSV = 7115
+*
+optimization finished, #iter = 5
+Objective value = -1646.316525
+nSV = 15153
+*
+optimization finished, #iter = 5
+Objective value = -1290.316525
+nSV = 15324
+
+optimization finished, #iter = 4
+Objective value = -1944.316525
+nSV = 14170
+*
+optimization finished, #iter = 5
+Objective value = -1406.316525
+nSV = 11116
+
+optimization finished, #iter = 4
+Objective value = -3484.316525
+nSV = 19891
+
+optimization finished, #iter = 3
+Objective value = -906.316525
+nSV = 10340
+*
+optimization finished, #iter = 5
+Objective value = -1318.316525
+nSV = 16200
+
+optimization finished, #iter = 4
+Objective value = -1386.316525
+nSV = 14754
+*
+optimization finished, #iter = 6
+Objective value = -4774.316525
+nSV = 25108
+
+optimization finished, #iter = 4
+Objective value = -2326.316525
+nSV = 18100
+
+optimization finished, #iter = 4
+Objective value = -4532.316525
+nSV = 23305
+*
+optimization finished, #iter = 5
+Objective value = -860.316525
+nSV = 13351
+*
+optimization finished, #iter = 5
+Objective value = -1822.316525
+nSV = 18677
+
+optimization finished, #iter = 4
+Objective value = -2044.316524
+nSV = 12566
+
+optimization finished, #iter = 4
+Objective value = -2532.316525
+nSV = 18960
+*
+optimization finished, #iter = 5
+Objective value = -936.316525
+nSV = 13417
+
+optimization finished, #iter = 4
+Objective value = -4624.316525
+nSV = 22629
+*
+optimization finished, #iter = 5
+Objective value = -1210.316525
+nSV = 12815
+*
+optimization finished, #iter = 6
+Objective value = -3650.316525
+nSV = 20180
+
+optimization finished, #iter = 4
+Objective value = -1828.316525
+nSV = 16998
+Accuracy = 0.0360741% (14/38809)
+
+Accuracy =
+
+    2.1954
+
+
+ans =
+
+    0.0170
+
+...*
+optimization finished, #iter = 31
+Objective value = -114.803488
+nSV = 1153
+...*
+optimization finished, #iter = 37
+Objective value = -130.552220
+nSV = 1171
+..*
+optimization finished, #iter = 21
+Objective value = -42.805048
+nSV = 783
+......*
+optimization finished, #iter = 68
+Objective value = -853.879284
+nSV = 2400
+..**
+optimization finished, #iter = 29
+Objective value = -100.698692
+nSV = 1095
+.........*.***
+optimization finished, #iter = 108
+Objective value = -1460.180336
+nSV = 3283
+..*.*
+optimization finished, #iter = 31
+Objective value = -119.784124
+nSV = 1222
+....*
+optimization finished, #iter = 46
+Objective value = -105.443535
+nSV = 1165
+...*
+optimization finished, #iter = 32
+Objective value = -85.732281
+nSV = 1098
+..*
+optimization finished, #iter = 25
+Objective value = -74.766816
+nSV = 1061
+..**
+optimization finished, #iter = 29
+Objective value = -66.489394
+nSV = 926
+....*.**
+optimization finished, #iter = 59
+Objective value = -278.419848
+nSV = 1628
+...*
+optimization finished, #iter = 39
+Objective value = -147.104397
+nSV = 1310
+..**
+optimization finished, #iter = 24
+Objective value = -38.308525
+nSV = 709
+...*.*
+optimization finished, #iter = 41
+Objective value = -229.132944
+nSV = 1401
+....**
+optimization finished, #iter = 45
+Objective value = -185.754472
+nSV = 1383
+....*.*
+optimization finished, #iter = 54
+Objective value = -231.038425
+nSV = 1446
+..**.*
+optimization finished, #iter = 32
+Objective value = -51.180155
+nSV = 871
+.......*.**
+optimization finished, #iter = 89
+Objective value = -309.129192
+nSV = 1665
+.*.
+optimization finished, #iter = 20
+Objective value = -32.629161
+nSV = 756
+....*
+optimization finished, #iter = 47
+Objective value = -126.748647
+nSV = 1118
+..*
+optimization finished, #iter = 21
+Objective value = -62.267831
+nSV = 891
+.....*
+optimization finished, #iter = 51
+Objective value = -224.597905
+nSV = 1448
+...*.**
+optimization finished, #iter = 44
+Objective value = -94.239051
+nSV = 1073
+....*
+optimization finished, #iter = 44
+Objective value = -62.281884
+nSV = 947
+....*
+optimization finished, #iter = 46
+Objective value = -69.369734
+nSV = 1018
+..**
+optimization finished, #iter = 29
+Objective value = -126.243559
+nSV = 1206
+...**
+optimization finished, #iter = 38
+Objective value = -150.908922
+nSV = 1192
+..**.
+optimization finished, #iter = 30
+Objective value = -106.275599
+nSV = 1011
+....*
+optimization finished, #iter = 49
+Objective value = -247.214530
+nSV = 1554
+...**
+optimization finished, #iter = 34
+Objective value = -112.401304
+nSV = 1158
+...**.
+optimization finished, #iter = 40
+Objective value = -176.813811
+nSV = 1353
+..*
+optimization finished, #iter = 23
+Objective value = -49.667051
+nSV = 864
+......*.
+optimization finished, #iter = 70
+Objective value = -869.689329
+nSV = 2373
+....*
+optimization finished, #iter = 44
+Objective value = -175.536034
+nSV = 1289
+......**
+optimization finished, #iter = 64
+Objective value = -375.550746
+nSV = 1731
+...*
+optimization finished, #iter = 33
+Objective value = -47.702303
+nSV = 776
+....***
+optimization finished, #iter = 49
+Objective value = -155.700042
+nSV = 1258
+..*.*
+optimization finished, #iter = 31
+Objective value = -43.077947
+nSV = 809
+...*
+optimization finished, #iter = 35
+Objective value = -88.363046
+nSV = 1120
+....*
+optimization finished, #iter = 42
+Objective value = -137.041169
+nSV = 1173
+......*
+optimization finished, #iter = 66
+Objective value = -641.011503
+nSV = 2243
+...*
+optimization finished, #iter = 37
+Objective value = -88.500217
+nSV = 1062
+....*.
+optimization finished, #iter = 50
+Objective value = -322.281595
+nSV = 1597
+....*
+optimization finished, #iter = 44
+Objective value = -183.789156
+nSV = 1368
+Accuracy = 1.37339% (533/38809)
+
+Accuracy =
+
+   59.4501
+
+
+ans =
+
+    0.6104
+
+.**.
+optimization finished, #iter = 20
+Objective value = -53.453820
+nSV = 1607
+.*
+optimization finished, #iter = 18
+Objective value = -51.832792
+nSV = 1549
+.*
+optimization finished, #iter = 13
+Objective value = -18.592110
+nSV = 987
+.....***
+optimization finished, #iter = 56
+Objective value = -374.456817
+nSV = 3138
+.*.
+optimization finished, #iter = 20
+Objective value = -44.278652
+nSV = 1555
+.....*.
+optimization finished, #iter = 60
+Objective value = -485.323054
+nSV = 3772
+..*
+optimization finished, #iter = 24
+Objective value = -51.673881
+nSV = 1696
+..**.*
+optimization finished, #iter = 31
+Objective value = -47.906929
+nSV = 1640
+.*
+optimization finished, #iter = 15
+Objective value = -40.039048
+nSV = 1486
+.*
+optimization finished, #iter = 18
+Objective value = -33.317083
+nSV = 1343
+.*
+optimization finished, #iter = 16
+Objective value = -34.576213
+nSV = 1314
+....**
+optimization finished, #iter = 46
+Objective value = -107.251770
+nSV = 2283
+..*
+optimization finished, #iter = 25
+Objective value = -63.816121
+nSV = 1788
+..*
+optimization finished, #iter = 24
+Objective value = -22.119920
+nSV = 1030
+..**
+optimization finished, #iter = 27
+Objective value = -95.485436
+nSV = 1805
+..*
+optimization finished, #iter = 22
+Objective value = -71.362633
+nSV = 1895
+..*
+optimization finished, #iter = 25
+Objective value = -73.787243
+nSV = 1829
+.*
+optimization finished, #iter = 14
+Objective value = -23.153658
+nSV = 1232
+...*
+optimization finished, #iter = 35
+Objective value = -113.946323
+nSV = 2319
+.*
+optimization finished, #iter = 12
+Objective value = -19.559557
+nSV = 1092
+...*
+optimization finished, #iter = 31
+Objective value = -58.622193
+nSV = 1511
+.*
+optimization finished, #iter = 14
+Objective value = -26.215184
+nSV = 1186
+...*
+optimization finished, #iter = 31
+Objective value = -91.571928
+nSV = 1986
+..*
+optimization finished, #iter = 23
+Objective value = -44.958598
+nSV = 1509
+...*
+optimization finished, #iter = 39
+Objective value = -29.297532
+nSV = 1213
+...**
+optimization finished, #iter = 33
+Objective value = -30.515213
+nSV = 1306
+.*
+optimization finished, #iter = 14
+Objective value = -48.399080
+nSV = 1622
+...*
+optimization finished, #iter = 32
+Objective value = -65.547276
+nSV = 1544
+..**
+optimization finished, #iter = 27
+Objective value = -56.291105
+nSV = 1435
+..*
+optimization finished, #iter = 27
+Objective value = -100.984022
+nSV = 2142
+.....**
+optimization finished, #iter = 57
+Objective value = -40.655720
+nSV = 1291
+..*
+optimization finished, #iter = 26
+Objective value = -63.956871
+nSV = 1822
+.*
+optimization finished, #iter = 12
+Objective value = -24.762621
+nSV = 1256
+....*
+optimization finished, #iter = 43
+Objective value = -248.587871
+nSV = 2817
+...*
+optimization finished, #iter = 31
+Objective value = -96.328079
+nSV = 1722
+...*.
+optimization finished, #iter = 40
+Objective value = -159.538942
+nSV = 2371
+.*
+optimization finished, #iter = 13
+Objective value = -25.136478
+nSV = 1112
+.*.
+optimization finished, #iter = 20
+Objective value = -60.601357
+nSV = 1779
+.*
+optimization finished, #iter = 17
+Objective value = -23.017742
+nSV = 1123
+..*.
+optimization finished, #iter = 30
+Objective value = -40.260696
+nSV = 1533
+..*
+optimization finished, #iter = 28
+Objective value = -55.482288
+nSV = 1586
+....*
+optimization finished, #iter = 45
+Objective value = -209.132133
+nSV = 2845
+.*
+optimization finished, #iter = 18
+Objective value = -40.686111
+nSV = 1462
+..*
+optimization finished, #iter = 22
+Objective value = -96.758455
+nSV = 2094
+.*.
+optimization finished, #iter = 20
+Objective value = -65.703661
+nSV = 1859
+Accuracy = 1.38112% (536/38809)
+
+Accuracy =
+
+   60.4602
+
+
+ans =
+
+    0.6361
+
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB® R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%%
+%Import the number of unique words,
+%number of characters, number of stop words,  
+test_3_feature = load('test_3.mat');
+test_3_feature = test_3_feature.test_z;
+train_3_feature = load('train_3.mat');
+train_3_feature = train_3_feature.train_z;
+test_3_feature = double(test_3_feature);
+train_3_feature = double(train_3_feature);
+%Import adj, noun, verb number
+train_anv = load('train_s.mat');
+train_anv = train_anv.train_s;
+test_anv = load('test_s.mat');
+test_anv = test_anv.test_s;
+
+%Import polarity and subjectivity
+train_ps = load('train_sentiment.mat');
+train_ps = train_ps.train_z;
+test_ps = load('test_sentiment.mat');
+test_ps = test_ps.test_z;
+
+%Do normalization for the number of unique words,
+%number of characters, number of stop words,
+test_3_feature=test_3_feature./(sum(test_3_feature,2)*ones(1,size(test_3_feature,2)));
+train_3_feature=train_3_feature./(sum(train_3_feature,2)*ones(1,size(train_3_feature,2)));
+bow=[train_3_feature;test_3_feature];
+n = length(train_3_feature);
+for i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+end
+train_3_feature = bow(1:n,:);
+test_3_feature = bow((n+1):end, :);
+%Do normalization for adj, noun, verb number
+test_anv=test_anv./(sum(test_anv,2)*ones(1,size(test_anv,2)));
+train_anv=train_anv./(sum(train_anv,2)*ones(1,size(train_anv,2)));
+bow=[train_anv;test_anv];
+n = length(train_anv);
+for i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+end
+train_anv = bow(1:n,:);
+test_anv = bow((n+1):end, :);
+%Do normalization for polarity and subjectivity
+test_ps=test_ps./(sum(test_ps,2)*ones(1,size(test_ps,2)));
+train_ps=train_ps./(sum(train_ps,2)*ones(1,size(train_ps,2)));
+bow=[train_ps;test_ps];
+n = length(train_ps);
+for i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+end
+train_ps = bow(1:n,:);
+test_ps = bow((n+1):end, :);
+%Now concatanate them all
+train_final = [train_3_feature, train_anv, train_ps];
+test_final = [test_3_feature, test_anv, test_ps];
+
+
+%Now let's build SVM on this data 
+load('ml_challenge_data_wstopwords.mat')
+train_txt = txt_pieces(train_ind',:);
+test_txt = txt_pieces(test_ind',:);
+train_author = aid(train_ind');
+test_author = aid(test_ind');
+model = train(train_author, sparse(train_final),['-s 3','-C 5']);
+[predicted_label] = predict(ones(size(test_final,1),1), sparse(test_final), model);
+
+count=0;
+Y= test_author;
+for i=1:size(test_txt,1)
+    if predicted_label(i,1)==Y(i)
+        count = count +1;
+    end
+end
+Accuracy = count/size(test_txt,1)*100
+
+result=confusionmatStats(Y, predicted_label(:,1));
+mean(result.Fscore)
+
+
+%Now let's add bag of words to them as a variable see the difference
+[n, d] = size(train_txt);
+[n2, d2] = size(test_txt);
+word_id = 7001:10000;
+numvoc = length(word_id);
+
+
+
+BOW_tr = zeros(n, numvoc);
+BOW_tst = zeros(n2, numvoc);
+
+
+%BOw representation
+for i=1:n
+    BOW_tr(i,:) = histc(train_txt(i, :), word_id);
+end
+
+for i=1:n2
+    BOW_tst(i,:) = histc(test_txt(i, :), word_id);
+end
+
+
+BOW_tst=BOW_tst./(sum(BOW_tst,2)*ones(1,size(BOW_tst,2)));
+BOW_tr=BOW_tr./(sum(BOW_tr,2)*ones(1,size(BOW_tr,2)));
+bow=[BOW_tr;BOW_tst];
+for i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+end
+BOW_tr = bow(1:n,:);
+BOW_tst = bow((n+1):end, :);
+
+%Combine bag of words and other useful features together
+train_final_bow = [BOW_tr, train_final];
+test_final_bow = [BOW_tst, test_final];
+model = train(train_author, sparse(train_final_bow),['-s 3','-C 5']);
+[predicted_label] = predict(ones(size(test_final_bow,1),1), sparse(test_final_bow), model);
+
+count=0;
+Y= test_author;
+for i=1:size(test_txt,1)
+    if predicted_label(i,1)==Y(i)
+        count = count +1;
+    end
+end
+Accuracy = count/size(test_txt,1)*100
+
+result=confusionmatStats(Y, predicted_label(:,1));
+mean(result.Fscore)
+
+%Now we can do the same experiment on 7000 bow
+word_id = 3001:10000;
+numvoc = length(word_id);
+
+
+
+BOW_tr = zeros(n, numvoc);
+BOW_tst = zeros(n2, numvoc);
+
+
+%BOw representation
+for i=1:n
+    BOW_tr(i,:) = histc(train_txt(i, :), word_id);
+end
+
+for i=1:n2
+    BOW_tst(i,:) = histc(test_txt(i, :), word_id);
+end
+
+
+BOW_tst=BOW_tst./(sum(BOW_tst,2)*ones(1,size(BOW_tst,2)));
+BOW_tr=BOW_tr./(sum(BOW_tr,2)*ones(1,size(BOW_tr,2)));
+bow=[BOW_tr;BOW_tst];
+for i=1:size(bow,2)
+    bow(:,i)=(bow(:,i)-min(bow(:,i)))/max(bow(:,i)-min(bow(:,i)));
+end
+BOW_tr = bow(1:n,:);
+BOW_tst = bow((n+1):end, :);
+
+%Combine bag of words and other useful features together
+train_final_bow = [BOW_tr, train_final];
+test_final_bow = [BOW_tst, test_final];
+model = train(train_author, sparse(train_final_bow),['-s 3','-C 5']);
+[predicted_label] = predict(ones(size(test_final_bow,1),1), sparse(test_final_bow), model);
+
+count=0;
+Y= test_author;
+for i=1:size(test_txt,1)
+    if predicted_label(i,1)==Y(i)
+        count = count +1;
+    end
+end
+Accuracy = count/size(test_txt,1)*100
+
+result=confusionmatStats(Y, predicted_label(:,1));
+mean(result.Fscore)
+
+##### SOURCE END #####
+--></body></html>
