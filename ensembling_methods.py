@@ -13,6 +13,7 @@ from sklearn.linear_model import SGDClassifier, LogisticRegression
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import f1_score, accuracy_score
 import scipy.io as sc
+import numpy as np
 
 models = [('MultiNB', MultinomialNB(alpha=0.03)),
           ('Calibrated MultiNB', CalibratedClassifierCV(
@@ -35,7 +36,14 @@ test = pd.read_csv('test1.csv', index_col=0)
 X_test = vectorizer.transform(test.text.values)
 results = clf.predict_proba(X_test)
 test_author = sc.loadmat("test_author.mat")["test_author"]
+#We need to find the probablity indexes that match to author id
+#remmeber that 5 7 31 47 49 are the missing classes in the training set
+new_results = np.zeros((len(results),1))
+unique_trian_authors = np.unique(train.author.values)
+for i in range(len(results)):
+    tmp = np.argmax(results[i])
+    new_results[i]=unique_trian_authors[tmp]
 print("f1 Score")
-print(f1_score(test_author, results, average='micro'))
+print(f1_score(test_author, new_results, average='micro'))
 print("Accuracy")
-print(accuracy_score(test_author, results))
+print(accuracy_score(test_author, new_results))
