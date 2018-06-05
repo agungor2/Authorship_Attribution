@@ -8,6 +8,9 @@ The data was extracted through https://blog.gdeltproject.org/ using Google Big Q
 https://dataworks.iupui.edu/handle/11243/23
 
 https://search.datacite.org/
+
+The suggested citation: Gungor, A. (2018). Fifty Victorian Era Novelists Authorship Attribution Data. IUPUI University Library. http://dx.doi.org/10.7912/D2N65J
+
 # Benchmarking Authorship Attribution Techniques Using 1113 Books by Fifty Victorian Era Authors, Abdulmecit Gungor
 
 The followings are possible techniques that can be used for text classification Authorship Attribution studies.
