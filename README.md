@@ -7,7 +7,7 @@ The data was extracted through https://blog.gdeltproject.org/ using Google Big Q
 # Download Dataset
 https://dataworks.iupui.edu/handle/11243/23
 
-https://search.datacite.org/
+https://search.datacite.org/works/10.7912/d2n65j
 
 The suggested citation: Gungor, A. (2018). Fifty Victorian Era Novelists Authorship Attribution Data. IUPUI University Library. http://dx.doi.org/10.7912/D2N65J
 
