@@ -9,7 +9,9 @@ https://dataworks.iupui.edu/handle/11243/23
 
 https://search.datacite.org/works/10.7912/d2n65j
 
-The suggested citation: Gungor, A. (2018). Fifty Victorian Era Novelists Authorship Attribution Data. IUPUI University Library. http://dx.doi.org/10.7912/D2N65J
+https://archive.ics.uci.edu/ml/datasets/Victorian+Era+Authorship+Attribution
+
+The suggested citation: Gungor, A. (2018). Fifty Victorian Era Novelists Authorship Attribution Data. Purdue Universitym Master Thesis. http://dx.doi.org/10.7912/D2N65J
 
 # Benchmarking Authorship Attribution Techniques Using 1113 Books by Fifty Victorian Era Authors, Abdulmecit Gungor
 
