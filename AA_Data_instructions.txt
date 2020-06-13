@@ -1,0 +1,10 @@
+1. Run `conda env create -f AA_Data.yml` to create the environment.
+2. Run `conda activate AA_Data` to activate the environment.
+3. Now, to add this environment to the list of available environments you'll
+see in your Jupyter notebook, run:
+python -m ipykernel install --user --name AA_Data --display-name "AA_Data"
+4. Now run `jupyter notebook` to start your notebook.
+5. In your notebook, select "Kernel -> Change kernel" and select
+"AA_Data" as your kernel.
+
+Now you'll be able to use all the libraries you'll need to complete the exercises!
